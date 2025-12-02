@@ -1,0 +1,21 @@
+Traceback (most recent call last):
+  File "c:\Users\engsupport\OneDrive - Lux Dynamics\Documents\omega_pid_ui\main_logger.py", line 687, in <module>
+    app = ThermalLoggerApp()
+  File "c:\Users\engsupport\OneDrive - Lux Dynamics\Documents\omega_pid_ui\main_logger.py", line 250, in __init__
+    self._build_ui()
+    ~~~~~~~~~~~~~~^^
+  File "c:\Users\engsupport\OneDrive - Lux Dynamics\Documents\omega_pid_ui\main_logger.py", line 288, in _build_ui
+    ttk.Label(top, text="Kailani Puava Alarcon", font=("Century Gothic", 10, "italics")).pack(anchor="e")
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\engsupport\AppData\Local\Programs\Python\Python313-32\Lib\tkinter\ttk.py", line 739, in __init__
+    Widget.__init__(self, master, "ttk::label", kw)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\engsupport\AppData\Local\Programs\Python\Python313-32\Lib\tkinter\ttk.py", line 534, in __init__
+    tkinter.Widget.__init__(self, master, widgetname, kw=kw)
+    ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\engsupport\AppData\Local\Programs\Python\Python313-32\Lib\tkinter\__init__.py", line 2780, in __init__
+    self.tk.call(
+    ~~~~~~~~~~~~^
+        (widgetName, self._w) + extra + self._options(cnf))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_tkinter.TclError: unknown font style "italics"
