@@ -27,6 +27,22 @@ PID_UI is a desktop application (Tkinter-based) that automates thermal testing u
 
 ## 🚀 Installation & Usage  
 
+Then configure your test in the GUI and click Start Logging. The program will save a .csv (and .xlsx if dependencies are installed) in the configured output folder.
+
+📁 Output
+
+CSV file with timestamp + all logged channels (and ambient if enabled)
+
+Excel file (.xlsx) with the same data, but with colored columns and grid borders for easier readability
+
+🧑‍🔧 Who’s this for
+
+Engineers / test technicians needing repeatable, organized, and documented thermal data logging — especially for long-duration tests or tests requiring ambient-temperature control.
+
+🙋‍♀️ Credits & Maintainer
+
+Created by Kailani Puava Alarcon at LUX Dynamics.
+Feel free to open issues or pull requests for feature suggestions or bug fixes.
 ```bash
 git clone https://github.com/kalarcon775/PID_UI.git
 cd PID_UI
