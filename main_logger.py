@@ -225,7 +225,7 @@ class LiveGraphWindow(tk.Toplevel):
     for all active TC-08 channels.
 
     - Zoom in/out with +/- buttons (time window, minutes).
-    - Scroll through history 
+    - Scroll through history with a styled slider (Earlier → Later).
     - Auto y-axis scaling.
     """
 
@@ -285,7 +285,7 @@ class LiveGraphWindow(tk.Toplevel):
         self.protocol("WM_DELETE_WINDOW", self.on_close)
 
     def on_close(self):
-        """Just close this window, logger keeps running."""
+        """Just close this window; logger keeps running."""
         self.destroy()
 
     def _update_window_label(self):
@@ -467,7 +467,7 @@ class LiveGraphWindow(tk.Toplevel):
         self.canvas.create_text(
             (plot_left + plot_right) / 2,
             h - 10,
-            text=f"Time window ≈ {window_min:.2f} min",
+            text=f"Time (min) – window ≈ {window_min:.2f} min",
             anchor="center"
         )
 
@@ -516,6 +516,11 @@ class ThermalLoggerApp(tk.Tk):
 
         self.graph_window = None
 
+        # For trend detection in Current Configuration
+        self.channel_history: Dict[int, List[float]] = {}
+        self.trend_window = 10      # number of recent samples to look at
+        self.trend_threshold = 3.0  # °C range to call "stable"
+
         self._build_vars()
         self._build_ui()
         self.protocol("WM_DELETE_WINDOW", self.on_close)
@@ -542,6 +547,8 @@ class ThermalLoggerApp(tk.Tk):
         self.status_var = tk.StringVar(value="Idle.")
         self.last_line_var = tk.StringVar(value="No data yet.")
         self.summary_var = tk.StringVar(value="No configuration yet.")
+        # Store just the static config text; we'll append trends below it
+        self.summary_header_text = ""
 
     def _build_ui(self):
         top = ttk.Frame(self, padding=10)
@@ -720,14 +727,14 @@ class ThermalLoggerApp(tk.Tk):
         if self.use_arduino_var.get():
             if not HAVE_SERIAL:
                 messagebox.showerror(
-                    "Arduino error",
+                    "Arduino error. Get Kailani.",
                     "pyserial is not installed; cannot use Arduino.\nInstall it or uncheck 'Use Arduino'. Or get Kailani."
                 )
                 return
 
             port_input = self.arduino_port_var.get().strip()
             if not port_input:
-                messagebox.showerror("Arduino error. Get Kailani", "Please enter a COM port (e.g. COM5 or 5).")
+                messagebox.showerror("Arduino error. Get Kailani.", "Please enter a COM port (e.g. COM5 or 5).")
                 return
 
             if port_input.upper().startswith("COM"):
@@ -830,7 +837,13 @@ class ThermalLoggerApp(tk.Tk):
         ]
         for ch, name in self.active_channels:
             summary_lines.append(f"  Input {ch}: {name}")
-        self.summary_var.set("\n".join(summary_lines))
+
+        # save static header; dynamic trends will be added below this
+        self.summary_header_text = "\n".join(summary_lines)
+        self.summary_var.set(self.summary_header_text)
+
+        # reset channel history each run
+        self.channel_history = {}
 
         # Set up graph window
         self.ensure_graph_window()
@@ -885,6 +898,9 @@ class ThermalLoggerApp(tk.Tk):
 
         self.last_line_var.set(ts + " | " + "  ".join(display_vals))
 
+        # update trends in "Current Configuration"
+        self.update_channel_trends(temps)
+
         if self.start_time is not None:
             elapsed = time.time() - self.start_time
         else:
@@ -901,6 +917,65 @@ class ThermalLoggerApp(tk.Tk):
                 return
 
         self.after(1000, self.poll_once)
+
+    # --------- Trend detection for Current Configuration ---------- #
+
+    def update_channel_trends(self, temps: Dict[int, float]):
+        """
+        Update summary_var to show whether each channel is
+        increasing / decreasing / stable (within 3°C) based on
+        the last self.trend_window readings.
+        """
+        if not self.active_channels:
+            return
+
+        header = self.summary_header_text or "Current configuration:"
+        lines = [header, "", f"Channel temperature trends (last ~{self.trend_window} readings):"]
+
+        for ch, name in self.active_channels:
+            # history list for this channel
+            hlist = self.channel_history.setdefault(ch, [])
+
+            val = temps.get(ch, None)
+            # try to parse numeric
+            try:
+                v = float(val)
+                if math.isnan(v):
+                    raise ValueError
+                # append valid reading
+                hlist.append(v)
+                if len(hlist) > self.trend_window:
+                    del hlist[:-self.trend_window]
+            except Exception:
+                # no new numeric data; if we have no history, we cannot classify
+                if not hlist:
+                    lines.append(f"  {name}: no data")
+                    continue
+                # else we just reuse existing history below
+
+            # classify from history
+            if len(hlist) < 2:
+                lines.append(f"  {name}: no data")
+                continue
+
+            vmin = min(hlist)
+            vmax = max(hlist)
+            if (vmax - vmin) <= self.trend_threshold:
+                trend = "stable"
+            else:
+                delta = hlist[-1] - hlist[0]
+                if delta > 0:
+                    trend = "increasing"
+                elif delta < 0:
+                    trend = "decreasing"
+                else:
+                    trend = "stable"
+
+            lines.append(f"  {name}: {trend}")
+
+        self.summary_var.set("\n".join(lines))
+
+    # --------- Shutdown ---------- #
 
     def stop_logging(self, error: bool = False):
         if not self.is_logging:
