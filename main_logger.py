@@ -225,7 +225,7 @@ class LiveGraphWindow(tk.Toplevel):
     for all active TC-08 channels.
 
     - Zoom in/out with +/- buttons (time window, minutes).
-    - Scroll through history with a styled slider (Earlier → Later).
+    - Scroll through history 
     - Auto y-axis scaling.
     """
 
@@ -239,8 +239,8 @@ class LiveGraphWindow(tk.Toplevel):
         self.window_sec = 300.0  # default 5 minutes
         self.max_points = 2000
         self.graph_colors = [
-            "blue", "red", "green", "purple",
-            "orange", "brown", "magenta", "cyan"
+            "red", "orange", "green", "blue",
+            "purple", "brown", "magenta", "cyan", "gray"
         ]
         self.pan_var = tk.DoubleVar(value=0.0)
 
@@ -265,7 +265,7 @@ class LiveGraphWindow(tk.Toplevel):
 
         slider_frame = ttk.Frame(controls)
         slider_frame.pack(side="right")
-        ttk.Label(slider_frame, text="Earlier").pack(side="left", padx=(0, 4))
+        ttk.Label(slider_frame, text="Past").pack(side="left", padx=(0, 4))
         self.pan_scale = ttk.Scale(
             slider_frame,
             from_=0.0,
@@ -277,7 +277,7 @@ class LiveGraphWindow(tk.Toplevel):
             length=260,
         )
         self.pan_scale.pack(side="left")
-        ttk.Label(slider_frame, text="Later").pack(side="left", padx=(4, 0))
+        ttk.Label(slider_frame, text="Current").pack(side="left", padx=(4, 0))
 
         self.canvas = tk.Canvas(self, bg="white")
         self.canvas.pack(fill="both", expand=True, padx=8, pady=(0, 8))
@@ -285,7 +285,7 @@ class LiveGraphWindow(tk.Toplevel):
         self.protocol("WM_DELETE_WINDOW", self.on_close)
 
     def on_close(self):
-        """Just close this window; logger keeps running."""
+        """Just close this window, logger keeps running."""
         self.destroy()
 
     def _update_window_label(self):
