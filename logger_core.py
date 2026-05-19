@@ -35,13 +35,8 @@ except ImportError:
 
 class ArduinoInterface:
     def __init__(self, port: str, baudrate: int = 9600):
-        """
-        Open the given serial COM port at the specified baudrate.
-        Raises RuntimeError if pyserial is not installed.
-        """
         global HAVE_SERIAL, serial
 
-        # Lazy re-check in case pyserial was installed after import
         if not HAVE_SERIAL:
             try:
                 import serial as serial_mod  # type: ignore
@@ -52,73 +47,72 @@ class ArduinoInterface:
                     "pyserial not installed; cannot use ArduinoInterface. Get Kailani."
                 )
 
-        # timeout kept short so reads don't stall the GUI
         self.ser = serial.Serial(port, baudrate=baudrate, timeout=0.1)
-        # Give the Arduino time to reset
         time.sleep(2.0)
         self.ser.reset_input_buffer()
 
-        self.latest_temp: Optional[float] = None
+        self.latest_ambient: Optional[float] = None
         self.latest_hold: Optional[float] = None
         self.latest_pwm: Optional[float] = None
+        self.latest_status: Optional[str] = None
+
+    def _write_line(self, text: str) -> None:
+        try:
+            self.ser.write((text.strip() + "\n").encode("ascii"))
+        except Exception:
+            pass
 
     def set_hold(self, temp_c: float) -> None:
-        """
-        Send a new ambient setpoint to the Arduino, e.g. SET:25.00\n
-        """
-        cmd = f"SET:{temp_c:.2f}\n"
+        self.latest_hold = temp_c
+        self._write_line(f"SET:{temp_c:.2f}")
+
+    def send_ambient(self, temp_c: float) -> None:
         try:
-            self.ser.write(cmd.encode("ascii"))
+            if temp_c is None or math.isnan(float(temp_c)):
+                return
+            self.latest_ambient = float(temp_c)
+            self._write_line(f"AMB:{float(temp_c):.2f}")
         except Exception:
-            # Non-fatal: ignore write problems; caller can decide how to handle.
             pass
 
     def poll(self):
-        """
-        Read any pending lines from the serial buffer.
-
-        Returns the latest parsed (temp_C, hold_C, pwm) tuple.
-        If no new valid line is seen, returns the last known values.
-        """
         line = None
 
         try:
-            # Drain buffer to get the most recent complete line
             while self.ser.in_waiting:
                 raw = self.ser.readline()
                 if not raw:
                     break
                 line = raw.decode("ascii", errors="ignore").strip()
         except Exception:
-            # On read or decode problems, just return the last good values
-            return self.latest_temp, self.latest_hold, self.latest_pwm
+            return self.latest_ambient, self.latest_hold, self.latest_pwm, self.latest_status
 
         if not line:
-            return self.latest_temp, self.latest_hold, self.latest_pwm
+            return self.latest_ambient, self.latest_hold, self.latest_pwm, self.latest_status
 
-        # Expected format: TEMP:25.30,HOLD:53.60,PWM:255
         try:
-            if "TEMP:" in line:
-                parts = [p.strip() for p in line.split(",")]
-                for p in parts:
-                    if p.startswith("TEMP:"):
-                        self.latest_temp = float(p.split("TEMP:")[1])
-                    elif p.startswith("HOLD:"):
-                        self.latest_hold = float(p.split("HOLD:")[1])
-                    elif p.startswith("PWM:"):
-                        self.latest_pwm = float(p.split("PWM:")[1])
-            else:
-                # Fallback: just a bare temperature number
-                self.latest_temp = float(line)
+            parts = [p.strip() for p in line.split(",")]
+            for p in parts:
+                if p.startswith("AMB:"):
+                    self.latest_ambient = float(p.split("AMB:")[1])
+                elif p.startswith("TEMP:"):
+                    self.latest_ambient = float(p.split("TEMP:")[1])
+                elif p.startswith("HOLD:"):
+                    self.latest_hold = float(p.split("HOLD:")[1])
+                elif p.startswith("PWM:"):
+                    self.latest_pwm = float(p.split("PWM:")[1])
+                elif p.startswith("STATUS:"):
+                    self.latest_status = p.split("STATUS:")[1]
+                elif p.startswith("ERR:"):
+                    self.latest_status = p
         except ValueError:
-            # Ignore malformed lines, keep last good values
             pass
 
-        return self.latest_temp, self.latest_hold, self.latest_pwm
+        return self.latest_ambient, self.latest_hold, self.latest_pwm, self.latest_status
 
     def close(self) -> None:
-        """Close the serial port, ignoring any errors."""
         try:
+            self._write_line("SET:0")
             self.ser.close()
         except Exception:
             pass
