@@ -3,8 +3,8 @@
 Live graph window for the LUX Thermal Logger.
 
 Shows time vs temperature for multiple channels, with:
-  - Zoom in/out (time window in minutes)
-  - Slider to scroll earlier/later in time
+  - One-click view ranges
+  - Timeline slider to review earlier/later data
   - Small y-axis with ticks + numeric labels
   - Grid lines for readability
   - Channel visibility checkboxes
@@ -18,6 +18,11 @@ import tkinter as tk
 from tkinter import ttk
 
 from logger_core import MAX_GRAPH_POINTS
+
+COLOR_HIGHLIGHT = "#2aa84a"
+COLOR_TEXT = "#ffffff"
+COLOR_MAIN_BG = "#000000"
+COLOR_PANEL_BG = "#d9d9d9"
 
 
 class LiveGraphWindow(tk.Toplevel):
@@ -43,7 +48,7 @@ class LiveGraphWindow(tk.Toplevel):
             "orange", "brown", "magenta", "cyan"
         ]
 
-        self.pan_var = tk.DoubleVar(value=0.0)
+        self.pan_var = tk.DoubleVar(value=100.0)
 
         # axis / plot geometry state for hover
         self.plot_left = None
@@ -64,40 +69,71 @@ class LiveGraphWindow(tk.Toplevel):
     # ---------------- UI setup ---------------- #
 
     def _build_ui(self):
-        # Top controls: zoom + slider
-        controls = ttk.Frame(self, padding=8)
+        self.configure(bg=COLOR_MAIN_BG)
+        style = ttk.Style(self)
+        style.configure("Graph.TFrame", background=COLOR_MAIN_BG)
+        style.configure("Graph.TLabel", background=COLOR_MAIN_BG, foreground=COLOR_TEXT)
+        style.configure("Graph.TCheckbutton", background=COLOR_MAIN_BG, foreground=COLOR_TEXT)
+        style.map(
+            "Graph.TCheckbutton",
+            background=[("active", COLOR_MAIN_BG), ("selected", COLOR_MAIN_BG)],
+            foreground=[("active", COLOR_TEXT), ("selected", COLOR_TEXT)],
+        )
+        style.configure("Graph.TButton", background=COLOR_HIGHLIGHT, foreground=COLOR_TEXT, padding=(10, 5))
+        style.map(
+            "Graph.TButton",
+            background=[("pressed", "#1f7f38"), ("active", COLOR_HIGHLIGHT)],
+            foreground=[("pressed", COLOR_TEXT), ("active", COLOR_TEXT)],
+        )
+        style.configure("Graph.Horizontal.TScale", troughcolor=COLOR_PANEL_BG)
+
+        controls = ttk.Frame(self, padding=8, style="Graph.TFrame")
         controls.pack(fill="x")
 
         self.window_label_var = tk.StringVar()
-        ttk.Button(controls, text="Zoom -", command=self.zoom_out).pack(side="left")
-        ttk.Button(controls, text="Zoom +", command=self.zoom_in).pack(side="left", padx=(2, 8))
-        ttk.Label(controls, textvariable=self.window_label_var).pack(side="left")
 
-        # Pretty slider
-        style = ttk.Style(self)
-        style.configure(
-            "Pan.Horizontal.TScale",
-            troughcolor="#e5e5e5",
-        )
+        ttk.Label(controls, text="View:", style="Graph.TLabel").pack(side="left", padx=(0, 6))
+        for label, minutes in (("1 min", 1), ("5 min", 5), ("15 min", 15), ("30 min", 30)):
+            ttk.Button(
+                controls,
+                text=label,
+                command=lambda m=minutes: self.set_window_minutes(m),
+                style="Graph.TButton",
+            ).pack(side="left", padx=(0, 4))
 
-        slider_frame = ttk.Frame(controls)
-        slider_frame.pack(side="right")
-        ttk.Label(slider_frame, text="Earlier").pack(side="left", padx=(0, 4))
+        ttk.Button(
+            controls,
+            text="Full",
+            command=self.show_full_history,
+            style="Graph.TButton",
+        ).pack(side="left", padx=(6, 4))
+
+        ttk.Button(
+            controls,
+            text="Latest",
+            command=self.show_latest,
+            style="Graph.TButton",
+        ).pack(side="left", padx=(0, 12))
+
+        ttk.Label(controls, textvariable=self.window_label_var, style="Graph.TLabel").pack(side="left")
+
+        timeline_frame = ttk.Frame(self, padding=(8, 0, 8, 8), style="Graph.TFrame")
+        timeline_frame.pack(fill="x")
+
+        ttk.Label(timeline_frame, text="Timeline", style="Graph.TLabel").pack(side="left", padx=(0, 8))
         self.pan_scale = ttk.Scale(
-            slider_frame,
+            timeline_frame,
             from_=0.0,
             to=100.0,
             orient="horizontal",
             variable=self.pan_var,
-            command=lambda v: self.redraw(),
-            style="Pan.Horizontal.TScale",
-            length=260,
+            command=self.on_pan_changed,
+            style="Graph.Horizontal.TScale",
         )
-        self.pan_scale.pack(side="left")
-        ttk.Label(slider_frame, text="Later").pack(side="left", padx=(4, 0))
+        self.pan_scale.pack(side="left", fill="x", expand=True)
 
         # Channel toggles row
-        self.toggle_frame = ttk.Frame(self, padding=(8, 0))
+        self.toggle_frame = ttk.Frame(self, padding=(8, 0), style="Graph.TFrame")
         self.toggle_frame.pack(fill="x", anchor="w")
 
         # Main drawing canvas
@@ -108,7 +144,7 @@ class LiveGraphWindow(tk.Toplevel):
 
         # Hover readout
         self.hover_label_var = tk.StringVar(value="Hover over plot for values")
-        self.hover_label = ttk.Label(self, textvariable=self.hover_label_var, padding=(8, 2))
+        self.hover_label = ttk.Label(self, textvariable=self.hover_label_var, padding=(8, 2), style="Graph.TLabel")
         self.hover_label.pack(fill="x", side="bottom", anchor="w")
 
         self.protocol("WM_DELETE_WINDOW", self.on_close)
@@ -119,9 +155,13 @@ class LiveGraphWindow(tk.Toplevel):
 
     def _update_window_label(self):
         if self.window_sec is None:
-            text = "Window: full"
+            text = "Showing: full run"
         else:
-            text = f"Window: {self.window_sec / 60.0:.2f} min"
+            minutes = self.window_sec / 60.0
+            if self.pan_var.get() >= 99.5:
+                text = f"Showing: latest {minutes:g} min"
+            else:
+                text = f"Showing: {minutes:g} min window"
         self.window_label_var.set(text)
 
     # ---------------- Channel configuration ---------------- #
@@ -149,7 +189,8 @@ class LiveGraphWindow(tk.Toplevel):
                 self.toggle_frame,
                 text=name,
                 variable=var,
-                command=self.redraw
+                command=self.redraw,
+                style="Graph.TCheckbutton",
             )
             cb.pack(side="left", padx=(0, 8))
 
@@ -160,6 +201,8 @@ class LiveGraphWindow(tk.Toplevel):
         Append a new reading for each channel and redraw the graph.
         `elapsed` is seconds since the run started.
         """
+        follow_latest = self.pan_var.get() >= 99.5
+
         for ch, _name in self.active_channels:
             val = temps.get(ch, float("nan"))
             try:
@@ -179,9 +222,37 @@ class LiveGraphWindow(tk.Toplevel):
                 self.history[ch]["t"] = self.history[ch]["t"][-self.max_points:]
                 self.history[ch]["v"] = self.history[ch]["v"][-self.max_points:]
 
+        if follow_latest:
+            self.pan_var.set(100.0)
+
         self.redraw()
 
-    # ---------------- Zoom / pan ---------------- #
+    # ---------------- View range / pan ---------------- #
+
+    def set_window_minutes(self, minutes: float):
+        """Show a fixed recent time window."""
+        self.window_sec = float(minutes) * 60.0
+        self.pan_var.set(100.0)
+        self._update_window_label()
+        self.redraw()
+
+    def show_full_history(self):
+        """Show the full available run history."""
+        self.window_sec = None
+        self.pan_var.set(100.0)
+        self._update_window_label()
+        self.redraw()
+
+    def show_latest(self):
+        """Jump the current view to the latest readings."""
+        self.pan_var.set(100.0)
+        self._update_window_label()
+        self.redraw()
+
+    def on_pan_changed(self, _value=None):
+        """Refresh the graph label and plot when the timeline slider moves."""
+        self._update_window_label()
+        self.redraw()
 
     def zoom_in(self):
         """Halve the visible time window, down to a minimum."""
