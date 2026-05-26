@@ -1,4 +1,4 @@
-# PID_UI  
+# Thermal Logger
 
 **GUI Thermal Logger for LUX Dynamics**
 
