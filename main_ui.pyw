@@ -107,6 +107,12 @@ APP_NAME = "LUX Thermal Logger"
 SHORTCUT_NAME = "LUX Thermal Logger.lnk"
 ICON_FILENAME = "lux_logo.ico"
 
+COLOR_HIGHLIGHT = "#2596be"
+COLOR_TEXT = "#ffffff"
+COLOR_MAIN_BG = "#000000"
+COLOR_SECONDARY_BG = "#777777"
+COLOR_ERROR = "#ff6b6b"
+
 
 def _get_windows_desktop() -> str:
     if os.name != "nt":
@@ -303,6 +309,7 @@ class ThermalLoggerApp(tk.Tk):
         self.summary_header_text = ""
 
         self._build_vars()
+        self._configure_theme()
         self._build_ui()
         self.set_status("Idle.")
         self.after(0, self._post_init)
@@ -362,7 +369,95 @@ class ThermalLoggerApp(tk.Tk):
     def set_status(self, text: str, is_error: bool = False):
         self.status_var.set(text)
         if self.status_label is not None:
-            self.status_label.configure(foreground=("red" if is_error else "black"))
+            self.status_label.configure(foreground=(COLOR_ERROR if is_error else COLOR_TEXT))
+
+    def _configure_theme(self):
+        self.configure(bg=COLOR_MAIN_BG)
+
+        style = ttk.Style(self)
+        try:
+            style.theme_use("clam")
+        except tk.TclError:
+            pass
+
+        base_font = ("Segoe UI", 10)
+        header_font = ("Century Gothic", 16, "bold")
+        subheader_font = ("Century Gothic", 12, "bold")
+
+        style.configure(".", font=base_font)
+        style.configure("TFrame", background=COLOR_MAIN_BG)
+        style.configure("Secondary.TFrame", background=COLOR_SECONDARY_BG)
+        style.configure("TLabel", background=COLOR_MAIN_BG, foreground=COLOR_TEXT)
+        style.configure("Secondary.TLabel", background=COLOR_SECONDARY_BG, foreground=COLOR_TEXT)
+        style.configure("Header.TLabel", background=COLOR_MAIN_BG, foreground=COLOR_TEXT, font=header_font)
+        style.configure("Subheader.TLabel", background=COLOR_MAIN_BG, foreground=COLOR_HIGHLIGHT, font=subheader_font)
+        style.configure("Muted.TLabel", background=COLOR_MAIN_BG, foreground=COLOR_TEXT)
+        style.configure(
+            "TLabelFrame",
+            background=COLOR_MAIN_BG,
+            foreground=COLOR_TEXT,
+            bordercolor=COLOR_HIGHLIGHT,
+            relief="solid",
+        )
+        style.configure(
+            "TLabelFrame.Label",
+            background=COLOR_MAIN_BG,
+            foreground=COLOR_HIGHLIGHT,
+            font=("Segoe UI", 10, "bold"),
+        )
+        style.configure("TCheckbutton", background=COLOR_MAIN_BG, foreground=COLOR_TEXT)
+        style.map(
+            "TCheckbutton",
+            background=[("active", COLOR_MAIN_BG), ("selected", COLOR_MAIN_BG)],
+            foreground=[("active", COLOR_TEXT), ("selected", COLOR_TEXT)],
+        )
+        style.configure(
+            "TButton",
+            background=COLOR_HIGHLIGHT,
+            foreground=COLOR_TEXT,
+            bordercolor=COLOR_HIGHLIGHT,
+            focusthickness=2,
+            focuscolor=COLOR_TEXT,
+            padding=(10, 5),
+        )
+        style.map(
+            "TButton",
+            background=[("disabled", COLOR_SECONDARY_BG), ("pressed", COLOR_SECONDARY_BG), ("active", COLOR_HIGHLIGHT)],
+            foreground=[("disabled", "#dddddd"), ("pressed", COLOR_TEXT), ("active", COLOR_TEXT)],
+        )
+        style.configure("TNotebook", background=COLOR_MAIN_BG, borderwidth=0)
+        style.configure(
+            "TNotebook.Tab",
+            background=COLOR_SECONDARY_BG,
+            foreground=COLOR_TEXT,
+            padding=(16, 8),
+        )
+        style.map(
+            "TNotebook.Tab",
+            background=[("selected", COLOR_HIGHLIGHT), ("active", COLOR_HIGHLIGHT)],
+            foreground=[("selected", COLOR_TEXT), ("active", COLOR_TEXT)],
+        )
+        style.configure(
+            "TEntry",
+            fieldbackground=COLOR_SECONDARY_BG,
+            foreground=COLOR_TEXT,
+            insertcolor=COLOR_TEXT,
+            bordercolor=COLOR_HIGHLIGHT,
+            lightcolor=COLOR_HIGHLIGHT,
+            darkcolor=COLOR_HIGHLIGHT,
+        )
+        style.map(
+            "TEntry",
+            fieldbackground=[("readonly", COLOR_SECONDARY_BG), ("disabled", COLOR_SECONDARY_BG)],
+            foreground=[("readonly", COLOR_TEXT), ("disabled", "#dddddd")],
+        )
+        style.configure(
+            "TSpinbox",
+            fieldbackground=COLOR_SECONDARY_BG,
+            foreground=COLOR_TEXT,
+            arrowcolor=COLOR_TEXT,
+            bordercolor=COLOR_HIGHLIGHT,
+        )
 
     def _build_ui(self):
         top = ttk.Frame(self, padding=10)
@@ -371,7 +466,7 @@ class ThermalLoggerApp(tk.Tk):
         ttk.Label(
             top,
             text="Thermal Temp Controller Logger",
-            font=("Century Gothic", 16, "bold")
+            style="Header.TLabel"
         ).pack(side="left")
 
         right_info = ttk.Frame(top)
@@ -380,38 +475,68 @@ class ThermalLoggerApp(tk.Tk):
         ttk.Label(
             right_info,
             text="LUX Dynamics",
-            font=("Century Gothic", 12, "bold")
+            style="Subheader.TLabel"
         ).pack(anchor="e")
 
         ttk.Label(
             right_info,
-            text="Kailani Puava Alarcon",
-            font=("Century Gothic", 10)
+            text="Kailani Puava Alarcon"
         ).pack(anchor="e")
+
+        action_bar = ttk.Frame(self, padding=(10, 0, 10, 10))
+        action_bar.pack(fill="x")
+
+        self.start_button = ttk.Button(action_bar, text="Start Logging", command=self.start_logging)
+        self.start_button.pack(side="left", padx=(0, 10))
+
+        self.stop_button = ttk.Button(action_bar, text="Stop Logging", command=self.on_stop)
+        self.stop_button.pack(side="left", padx=(0, 10))
+        self.stop_button["state"] = "disabled"
+
+        ttk.Button(
+            action_bar,
+            text="Open Live Graph Window",
+            command=self.ensure_graph_window
+        ).pack(side="left")
+
+        self.status_label = ttk.Label(action_bar, textvariable=self.status_var)
+        self.status_label.pack(side="right")
 
         main = ttk.Frame(self, padding=10)
         main.pack(fill="both", expand=True)
 
-        left = ttk.Frame(main)
-        left.pack(side="left", fill="y", padx=(0, 12))
+        notebook = ttk.Notebook(main)
+        notebook.pack(fill="both", expand=True)
 
-        meta = ttk.LabelFrame(left, text="Test Metadata", padding=10)
+        test_tab = ttk.Frame(notebook, padding=12)
+        channels_tab = ttk.Frame(notebook, padding=12)
+        ambient_tab = ttk.Frame(notebook, padding=12)
+        summary_tab = ttk.Frame(notebook, padding=12)
+
+        notebook.add(test_tab, text="Test Info")
+        notebook.add(channels_tab, text="TC-08 Channels")
+        notebook.add(ambient_tab, text="Ambient Control")
+        notebook.add(summary_tab, text="Summary")
+
+        meta = ttk.LabelFrame(test_tab, text="Test Metadata", padding=10)
         meta.pack(fill="x", pady=(0, 10))
+        meta.columnconfigure(1, weight=1)
 
         ttk.Label(meta, text="Test name:").grid(row=0, column=0, sticky="e")
-        ttk.Entry(meta, textvariable=self.test_name_var, width=28).grid(row=0, column=1, sticky="w")
+        ttk.Entry(meta, textvariable=self.test_name_var, width=42).grid(row=0, column=1, sticky="ew", padx=(8, 0), pady=2)
 
         ttk.Label(meta, text="Tester:").grid(row=1, column=0, sticky="e")
-        ttk.Entry(meta, textvariable=self.tester_var, width=28).grid(row=1, column=1, sticky="w")
+        ttk.Entry(meta, textvariable=self.tester_var, width=42).grid(row=1, column=1, sticky="ew", padx=(8, 0), pady=2)
 
         ttk.Label(meta, text="Fixture:").grid(row=2, column=0, sticky="e")
-        ttk.Entry(meta, textvariable=self.fixture_var, width=28).grid(row=2, column=1, sticky="w")
+        ttk.Entry(meta, textvariable=self.fixture_var, width=42).grid(row=2, column=1, sticky="ew", padx=(8, 0), pady=2)
 
         ttk.Label(meta, text="Notes:").grid(row=3, column=0, sticky="ne")
-        ttk.Entry(meta, textvariable=self.notes_var, width=28).grid(row=3, column=1, sticky="w")
+        ttk.Entry(meta, textvariable=self.notes_var, width=42).grid(row=3, column=1, sticky="ew", padx=(8, 0), pady=2)
 
-        ch_frame = ttk.LabelFrame(left, text="TC-08 Channels + Trends", padding=10)
+        ch_frame = ttk.LabelFrame(channels_tab, text="TC-08 Channels + Trends", padding=10)
         ch_frame.pack(fill="x")
+        ch_frame.columnconfigure(1, weight=1)
 
         ttk.Checkbutton(
             ch_frame,
@@ -459,14 +584,12 @@ class ThermalLoggerApp(tk.Tk):
             ch_frame,
             textvariable=self.channel_trends_var,
             justify="left",
-            foreground="gray"
+            style="Muted.TLabel"
         ).grid(row=row, column=0, columnspan=2, sticky="w", pady=(6, 0))
 
-        right = ttk.Frame(main)
-        right.pack(side="left", fill="both", expand=True)
-
-        ar_frame = ttk.LabelFrame(right, text="Arduino Ambient Control", padding=10)
+        ar_frame = ttk.LabelFrame(ambient_tab, text="Arduino Ambient Control", padding=10)
         ar_frame.pack(fill="x")
+        ar_frame.columnconfigure(1, weight=1)
 
         ttk.Checkbutton(
             ar_frame,
@@ -518,8 +641,9 @@ class ThermalLoggerApp(tk.Tk):
         ttk.Label(ar_frame, text="Hold hours per step, 3 to 6:").grid(row=8, column=0, sticky="e")
         ttk.Entry(ar_frame, textvariable=self.step_hold_hours_var, width=8).grid(row=8, column=1, sticky="w")
 
-        run_frame = ttk.LabelFrame(right, text="Run Settings", padding=10)
+        run_frame = ttk.LabelFrame(test_tab, text="Run Settings", padding=10)
         run_frame.pack(fill="x", pady=(10, 0))
+        run_frame.columnconfigure(1, weight=1)
 
         ttk.Label(run_frame, text="Output folder:").grid(row=0, column=0, sticky="ne")
 
@@ -529,7 +653,7 @@ class ThermalLoggerApp(tk.Tk):
             wraplength=420,
             justify="left"
         )
-        self.output_folder_label.grid(row=0, column=1, sticky="w")
+        self.output_folder_label.grid(row=0, column=1, sticky="ew", padx=(8, 0), pady=2)
 
         ttk.Label(run_frame, text="Base file name:").grid(row=1, column=0, sticky="e")
 
@@ -537,7 +661,7 @@ class ThermalLoggerApp(tk.Tk):
             run_frame,
             textvariable=self.base_name_var,
             width=36
-        ).grid(row=1, column=1, sticky="w")
+        ).grid(row=1, column=1, sticky="ew", padx=(8, 0), pady=2)
 
         self.append_datetime_check = ttk.Checkbutton(
             run_frame,
@@ -556,57 +680,39 @@ class ThermalLoggerApp(tk.Tk):
             run_frame,
             textvariable=self.duration_minutes_var,
             width=12
-        ).grid(row=3, column=1, sticky="w")
+        ).grid(row=3, column=1, sticky="w", padx=(8, 0), pady=2)
 
-        btn_frame = ttk.Frame(run_frame)
-        btn_frame.grid(row=4, column=0, columnspan=2, pady=(10, 0))
-
-        self.start_button = ttk.Button(btn_frame, text="Start Logging", command=self.start_logging)
-        self.start_button.pack(side="left", padx=(0, 10))
-
-        self.stop_button = ttk.Button(btn_frame, text="Stop Logging", command=self.on_stop)
-        self.stop_button.pack(side="left")
-        self.stop_button["state"] = "disabled"
-
-        open_graph_btn = ttk.Button(
-            run_frame,
-            text="Open Live Graph Window",
-            command=self.ensure_graph_window
-        )
-        open_graph_btn.grid(row=5, column=0, columnspan=2, pady=(10, 0))
-
-        ttk.Label(run_frame, text="Full output path:").grid(row=6, column=0, sticky="ne", pady=(8, 0))
+        ttk.Label(run_frame, text="Full output path:").grid(row=4, column=0, sticky="ne", pady=(8, 0))
 
         self.output_path_entry = ttk.Entry(
             run_frame,
             textvariable=self.output_path_var,
             width=48
         )
-        self.output_path_entry.grid(row=6, column=1, sticky="w", pady=(8, 0))
+        self.output_path_entry.grid(row=4, column=1, sticky="ew", padx=(8, 0), pady=(8, 0))
         self.output_path_entry.configure(state="readonly")
 
-        summary_frame = ttk.LabelFrame(right, text="Current Configuration", padding=10)
+        summary_frame = ttk.LabelFrame(summary_tab, text="Current Configuration", padding=10)
         summary_frame.pack(fill="both", expand=True, pady=(10, 0))
 
         ttk.Label(
             summary_frame,
             textvariable=self.summary_var,
             justify="left",
-            wraplength=480
+            wraplength=760
         ).pack(anchor="w")
 
-        status_frame = ttk.LabelFrame(self, text="Status", padding=10)
-        status_frame.pack(fill="x", side="bottom")
+        status_frame = ttk.LabelFrame(summary_tab, text="Status", padding=10)
+        status_frame.pack(fill="x", pady=(10, 0))
 
-        self.status_label = ttk.Label(status_frame, textvariable=self.status_var)
-        self.status_label.pack(anchor="w")
+        ttk.Label(status_frame, textvariable=self.status_var, style="Subheader.TLabel").pack(anchor="w")
 
         ttk.Label(status_frame, text="Last reading:").pack(anchor="w")
 
         ttk.Label(
             status_frame,
             textvariable=self.last_line_var,
-            wraplength=980
+            wraplength=900
         ).pack(anchor="w")
 
     def ensure_graph_window(self):
