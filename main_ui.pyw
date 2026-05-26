@@ -109,6 +109,7 @@ ICON_FILENAME = "lux_logo.ico"
 
 COLOR_HIGHLIGHT = "#2aa84a"
 COLOR_TEXT = "#ffffff"
+COLOR_PANEL_TEXT = "#000000"
 COLOR_MAIN_BG = "#000000"
 COLOR_SECONDARY_BG = "#777777"
 COLOR_ERROR = "#ff6b6b"
@@ -387,31 +388,31 @@ class ThermalLoggerApp(tk.Tk):
         style.configure(".", font=base_font)
         style.configure("TFrame", background=COLOR_MAIN_BG)
         style.configure("Secondary.TFrame", background=COLOR_SECONDARY_BG)
-        style.configure("TLabel", background=COLOR_SECONDARY_BG, foreground=COLOR_TEXT)
+        style.configure("TLabel", background=COLOR_SECONDARY_BG, foreground=COLOR_PANEL_TEXT)
         style.configure("Main.TLabel", background=COLOR_MAIN_BG, foreground=COLOR_TEXT)
-        style.configure("Secondary.TLabel", background=COLOR_SECONDARY_BG, foreground=COLOR_TEXT)
+        style.configure("Secondary.TLabel", background=COLOR_SECONDARY_BG, foreground=COLOR_PANEL_TEXT)
         style.configure("Header.TLabel", background=COLOR_MAIN_BG, foreground=COLOR_TEXT, font=header_font)
         style.configure("Subheader.TLabel", background=COLOR_MAIN_BG, foreground=COLOR_HIGHLIGHT, font=subheader_font)
-        style.configure("PanelHeader.TLabel", background=COLOR_SECONDARY_BG, foreground=COLOR_HIGHLIGHT, font=subheader_font)
-        style.configure("Muted.TLabel", background=COLOR_SECONDARY_BG, foreground=COLOR_TEXT)
+        style.configure("PanelHeader.TLabel", background=COLOR_SECONDARY_BG, foreground=COLOR_PANEL_TEXT, font=subheader_font)
+        style.configure("Muted.TLabel", background=COLOR_SECONDARY_BG, foreground=COLOR_PANEL_TEXT)
         style.configure(
             "TLabelFrame",
             background=COLOR_SECONDARY_BG,
-            foreground=COLOR_TEXT,
+            foreground=COLOR_PANEL_TEXT,
             bordercolor=COLOR_HIGHLIGHT,
             relief="solid",
         )
         style.configure(
             "TLabelFrame.Label",
             background=COLOR_SECONDARY_BG,
-            foreground=COLOR_HIGHLIGHT,
+            foreground=COLOR_PANEL_TEXT,
             font=("Segoe UI", 10, "bold"),
         )
-        style.configure("TCheckbutton", background=COLOR_SECONDARY_BG, foreground=COLOR_TEXT)
+        style.configure("TCheckbutton", background=COLOR_SECONDARY_BG, foreground=COLOR_PANEL_TEXT)
         style.map(
             "TCheckbutton",
             background=[("active", COLOR_SECONDARY_BG), ("selected", COLOR_SECONDARY_BG)],
-            foreground=[("active", COLOR_TEXT), ("selected", COLOR_TEXT)],
+            foreground=[("active", COLOR_PANEL_TEXT), ("selected", COLOR_PANEL_TEXT)],
         )
         style.configure(
             "TButton",
@@ -442,8 +443,8 @@ class ThermalLoggerApp(tk.Tk):
         style.configure(
             "TEntry",
             fieldbackground=COLOR_SECONDARY_BG,
-            foreground=COLOR_TEXT,
-            insertcolor=COLOR_TEXT,
+            foreground=COLOR_PANEL_TEXT,
+            insertcolor=COLOR_PANEL_TEXT,
             bordercolor=COLOR_HIGHLIGHT,
             lightcolor=COLOR_HIGHLIGHT,
             darkcolor=COLOR_HIGHLIGHT,
@@ -451,13 +452,13 @@ class ThermalLoggerApp(tk.Tk):
         style.map(
             "TEntry",
             fieldbackground=[("readonly", COLOR_SECONDARY_BG), ("disabled", COLOR_SECONDARY_BG)],
-            foreground=[("readonly", COLOR_TEXT), ("disabled", "#dddddd")],
+            foreground=[("readonly", COLOR_PANEL_TEXT), ("disabled", "#222222")],
         )
         style.configure(
             "TSpinbox",
             fieldbackground=COLOR_SECONDARY_BG,
-            foreground=COLOR_TEXT,
-            arrowcolor=COLOR_TEXT,
+            foreground=COLOR_PANEL_TEXT,
+            arrowcolor=COLOR_PANEL_TEXT,
             bordercolor=COLOR_HIGHLIGHT,
         )
 
