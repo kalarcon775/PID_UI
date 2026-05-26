@@ -111,7 +111,9 @@ COLOR_HIGHLIGHT = "#2aa84a"
 COLOR_TEXT = "#ffffff"
 COLOR_PANEL_TEXT = "#000000"
 COLOR_MAIN_BG = "#000000"
-COLOR_SECONDARY_BG = "#777777"
+COLOR_SECONDARY_BG = "#d9d9d9"
+COLOR_FIELD_BG = "#ffffff"
+COLOR_TAB_BG = "#777777"
 COLOR_ERROR = "#ff6b6b"
 
 
@@ -425,13 +427,13 @@ class ThermalLoggerApp(tk.Tk):
         )
         style.map(
             "TButton",
-            background=[("disabled", COLOR_SECONDARY_BG), ("pressed", COLOR_SECONDARY_BG), ("active", COLOR_HIGHLIGHT)],
+            background=[("disabled", COLOR_TAB_BG), ("pressed", COLOR_TAB_BG), ("active", COLOR_HIGHLIGHT)],
             foreground=[("disabled", "#dddddd"), ("pressed", COLOR_TEXT), ("active", COLOR_TEXT)],
         )
         style.configure("TNotebook", background=COLOR_MAIN_BG, borderwidth=0)
         style.configure(
             "TNotebook.Tab",
-            background=COLOR_SECONDARY_BG,
+            background=COLOR_TAB_BG,
             foreground=COLOR_TEXT,
             padding=(16, 8),
         )
@@ -442,7 +444,7 @@ class ThermalLoggerApp(tk.Tk):
         )
         style.configure(
             "TEntry",
-            fieldbackground=COLOR_SECONDARY_BG,
+            fieldbackground=COLOR_FIELD_BG,
             foreground=COLOR_PANEL_TEXT,
             insertcolor=COLOR_PANEL_TEXT,
             bordercolor=COLOR_HIGHLIGHT,
@@ -451,12 +453,12 @@ class ThermalLoggerApp(tk.Tk):
         )
         style.map(
             "TEntry",
-            fieldbackground=[("readonly", COLOR_SECONDARY_BG), ("disabled", COLOR_SECONDARY_BG)],
+            fieldbackground=[("readonly", COLOR_FIELD_BG), ("disabled", COLOR_SECONDARY_BG)],
             foreground=[("readonly", COLOR_PANEL_TEXT), ("disabled", "#222222")],
         )
         style.configure(
             "TSpinbox",
-            fieldbackground=COLOR_SECONDARY_BG,
+            fieldbackground=COLOR_FIELD_BG,
             foreground=COLOR_PANEL_TEXT,
             arrowcolor=COLOR_PANEL_TEXT,
             bordercolor=COLOR_HIGHLIGHT,
