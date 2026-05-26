@@ -110,11 +110,12 @@ ICON_FILENAME = "lux_logo.ico"
 COLOR_HIGHLIGHT = "#2aa84a"
 COLOR_TEXT = "#ffffff"
 COLOR_PANEL_TEXT = "#000000"
-COLOR_MAIN_BG = "#b8b8b8"
-COLOR_SECONDARY_BG = "#b8b8b8"
+COLOR_MAIN_BG = "#d9d9d9"
+COLOR_SECONDARY_BG = "#d9d9d9"
 COLOR_FIELD_BG = "#ffffff"
 COLOR_TAB_BG = "#777777"
-COLOR_ERROR = "#ff6b6b"
+COLOR_BORDER = "#9a9a9a"
+COLOR_ERROR = "#8b0000"
 
 
 def _get_windows_desktop() -> str:
@@ -383,7 +384,7 @@ class ThermalLoggerApp(tk.Tk):
         except tk.TclError:
             pass
 
-        base_font = ("Segoe UI", 10)
+        base_font = ("Century Gothic", 10)
         header_font = ("Century Gothic", 16, "bold")
         subheader_font = ("Century Gothic", 12, "bold")
 
@@ -401,14 +402,14 @@ class ThermalLoggerApp(tk.Tk):
             "TLabelFrame",
             background=COLOR_SECONDARY_BG,
             foreground=COLOR_PANEL_TEXT,
-            bordercolor=COLOR_HIGHLIGHT,
+            bordercolor=COLOR_BORDER,
             relief="solid",
         )
         style.configure(
             "TLabelFrame.Label",
             background=COLOR_SECONDARY_BG,
             foreground=COLOR_PANEL_TEXT,
-            font=("Segoe UI", 10, "bold"),
+            font=("Century Gothic", 10, "bold"),
         )
         style.configure("TCheckbutton", background=COLOR_SECONDARY_BG, foreground=COLOR_PANEL_TEXT)
         style.map(
@@ -447,9 +448,9 @@ class ThermalLoggerApp(tk.Tk):
             fieldbackground=COLOR_FIELD_BG,
             foreground=COLOR_PANEL_TEXT,
             insertcolor=COLOR_PANEL_TEXT,
-            bordercolor=COLOR_HIGHLIGHT,
-            lightcolor=COLOR_HIGHLIGHT,
-            darkcolor=COLOR_HIGHLIGHT,
+            bordercolor=COLOR_BORDER,
+            lightcolor=COLOR_BORDER,
+            darkcolor=COLOR_BORDER,
         )
         style.map(
             "TEntry",
@@ -461,7 +462,7 @@ class ThermalLoggerApp(tk.Tk):
             fieldbackground=COLOR_FIELD_BG,
             foreground=COLOR_PANEL_TEXT,
             arrowcolor=COLOR_PANEL_TEXT,
-            bordercolor=COLOR_HIGHLIGHT,
+            bordercolor=COLOR_BORDER,
         )
 
     def _build_ui(self):
