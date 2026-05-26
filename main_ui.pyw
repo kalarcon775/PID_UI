@@ -107,7 +107,7 @@ APP_NAME = "LUX Thermal Logger"
 SHORTCUT_NAME = "LUX Thermal Logger.lnk"
 ICON_FILENAME = "lux_logo.ico"
 
-COLOR_HIGHLIGHT = "#2596be"
+COLOR_HIGHLIGHT = "#2aa84a"
 COLOR_TEXT = "#ffffff"
 COLOR_MAIN_BG = "#000000"
 COLOR_SECONDARY_BG = "#777777"
@@ -387,28 +387,30 @@ class ThermalLoggerApp(tk.Tk):
         style.configure(".", font=base_font)
         style.configure("TFrame", background=COLOR_MAIN_BG)
         style.configure("Secondary.TFrame", background=COLOR_SECONDARY_BG)
-        style.configure("TLabel", background=COLOR_MAIN_BG, foreground=COLOR_TEXT)
+        style.configure("TLabel", background=COLOR_SECONDARY_BG, foreground=COLOR_TEXT)
+        style.configure("Main.TLabel", background=COLOR_MAIN_BG, foreground=COLOR_TEXT)
         style.configure("Secondary.TLabel", background=COLOR_SECONDARY_BG, foreground=COLOR_TEXT)
         style.configure("Header.TLabel", background=COLOR_MAIN_BG, foreground=COLOR_TEXT, font=header_font)
         style.configure("Subheader.TLabel", background=COLOR_MAIN_BG, foreground=COLOR_HIGHLIGHT, font=subheader_font)
-        style.configure("Muted.TLabel", background=COLOR_MAIN_BG, foreground=COLOR_TEXT)
+        style.configure("PanelHeader.TLabel", background=COLOR_SECONDARY_BG, foreground=COLOR_HIGHLIGHT, font=subheader_font)
+        style.configure("Muted.TLabel", background=COLOR_SECONDARY_BG, foreground=COLOR_TEXT)
         style.configure(
             "TLabelFrame",
-            background=COLOR_MAIN_BG,
+            background=COLOR_SECONDARY_BG,
             foreground=COLOR_TEXT,
             bordercolor=COLOR_HIGHLIGHT,
             relief="solid",
         )
         style.configure(
             "TLabelFrame.Label",
-            background=COLOR_MAIN_BG,
+            background=COLOR_SECONDARY_BG,
             foreground=COLOR_HIGHLIGHT,
             font=("Segoe UI", 10, "bold"),
         )
-        style.configure("TCheckbutton", background=COLOR_MAIN_BG, foreground=COLOR_TEXT)
+        style.configure("TCheckbutton", background=COLOR_SECONDARY_BG, foreground=COLOR_TEXT)
         style.map(
             "TCheckbutton",
-            background=[("active", COLOR_MAIN_BG), ("selected", COLOR_MAIN_BG)],
+            background=[("active", COLOR_SECONDARY_BG), ("selected", COLOR_SECONDARY_BG)],
             foreground=[("active", COLOR_TEXT), ("selected", COLOR_TEXT)],
         )
         style.configure(
@@ -480,7 +482,8 @@ class ThermalLoggerApp(tk.Tk):
 
         ttk.Label(
             right_info,
-            text="Kailani Puava Alarcon"
+            text="Kailani Puava Alarcon",
+            style="Main.TLabel"
         ).pack(anchor="e")
 
         action_bar = ttk.Frame(self, padding=(10, 0, 10, 10))
@@ -499,7 +502,7 @@ class ThermalLoggerApp(tk.Tk):
             command=self.ensure_graph_window
         ).pack(side="left")
 
-        self.status_label = ttk.Label(action_bar, textvariable=self.status_var)
+        self.status_label = ttk.Label(action_bar, textvariable=self.status_var, style="Main.TLabel")
         self.status_label.pack(side="right")
 
         main = ttk.Frame(self, padding=10)
@@ -705,7 +708,7 @@ class ThermalLoggerApp(tk.Tk):
         status_frame = ttk.LabelFrame(summary_tab, text="Status", padding=10)
         status_frame.pack(fill="x", pady=(10, 0))
 
-        ttk.Label(status_frame, textvariable=self.status_var, style="Subheader.TLabel").pack(anchor="w")
+        ttk.Label(status_frame, textvariable=self.status_var, style="PanelHeader.TLabel").pack(anchor="w")
 
         ttk.Label(status_frame, text="Last reading:").pack(anchor="w")
 
