@@ -344,7 +344,7 @@ class ThermalLoggerApp(tk.Tk):
         self.ambient_setpoint_var = tk.StringVar(value="25")
         self.ambient_feedback_channel_var = tk.IntVar(value=1)
 
-        self.step_mode_var = tk.BooleanVar(value=True)
+        self.step_mode_var = tk.BooleanVar(value=False)
         self.step_start_var = tk.StringVar(value="40")
         self.step_stop_var = tk.StringVar(value="60")
         self.step_size_var = tk.StringVar(value="5")
@@ -600,7 +600,8 @@ class ThermalLoggerApp(tk.Tk):
         ttk.Checkbutton(
             ar_frame,
             text="Use Arduino for ambient control/logging",
-            variable=self.use_arduino_var
+            variable=self.use_arduino_var,
+            command=self._update_arduino_controls
         ).grid(row=0, column=0, columnspan=2, sticky="w")
 
         ttk.Label(ar_frame, text="COM port (e.g. COM5 or 5):").grid(row=1, column=0, sticky="e")
@@ -629,23 +630,38 @@ class ThermalLoggerApp(tk.Tk):
             width=5
         ).grid(row=3, column=1, sticky="w")
 
-        ttk.Checkbutton(
+        self.step_mode_check = ttk.Checkbutton(
             ar_frame,
             text="Use step schedule",
-            variable=self.step_mode_var
-        ).grid(row=4, column=0, columnspan=2, sticky="w")
+            variable=self.step_mode_var,
+            command=self._update_arduino_controls
+        )
+        self.step_mode_check.grid(row=4, column=0, columnspan=2, sticky="w")
 
         ttk.Label(ar_frame, text="Start °C:").grid(row=5, column=0, sticky="e")
-        ttk.Entry(ar_frame, textvariable=self.step_start_var, width=8).grid(row=5, column=1, sticky="w")
+        self.step_start_entry = ttk.Entry(ar_frame, textvariable=self.step_start_var, width=8)
+        self.step_start_entry.grid(row=5, column=1, sticky="w")
 
         ttk.Label(ar_frame, text="Stop °C:").grid(row=6, column=0, sticky="e")
-        ttk.Entry(ar_frame, textvariable=self.step_stop_var, width=8).grid(row=6, column=1, sticky="w")
+        self.step_stop_entry = ttk.Entry(ar_frame, textvariable=self.step_stop_var, width=8)
+        self.step_stop_entry.grid(row=6, column=1, sticky="w")
 
         ttk.Label(ar_frame, text="Step °C:").grid(row=7, column=0, sticky="e")
-        ttk.Entry(ar_frame, textvariable=self.step_size_var, width=8).grid(row=7, column=1, sticky="w")
+        self.step_size_entry = ttk.Entry(ar_frame, textvariable=self.step_size_var, width=8)
+        self.step_size_entry.grid(row=7, column=1, sticky="w")
 
-        ttk.Label(ar_frame, text="Hold hours per step, 3 to 6:").grid(row=8, column=0, sticky="e")
-        ttk.Entry(ar_frame, textvariable=self.step_hold_hours_var, width=8).grid(row=8, column=1, sticky="w")
+        self.step_hold_label = ttk.Label(ar_frame, text="Hold hours per step:")
+        self.step_hold_label.grid(row=8, column=0, sticky="e")
+        self.step_hold_entry = ttk.Entry(ar_frame, textvariable=self.step_hold_hours_var, width=8)
+        self.step_hold_entry.grid(row=8, column=1, sticky="w")
+
+        self.step_schedule_controls = [
+            self.step_start_entry,
+            self.step_stop_entry,
+            self.step_size_entry,
+            self.step_hold_entry,
+        ]
+        self._update_arduino_controls()
 
         run_frame = ttk.LabelFrame(test_tab, text="Run Settings", padding=10)
         run_frame.pack(fill="x", pady=(10, 0))
@@ -720,6 +736,20 @@ class ThermalLoggerApp(tk.Tk):
             textvariable=self.last_line_var,
             wraplength=900
         ).pack(anchor="w")
+
+    def _update_arduino_controls(self):
+        arduino_enabled = self.use_arduino_var.get()
+
+        if not arduino_enabled:
+            self.step_mode_var.set(False)
+
+        step_check_state = "normal" if arduino_enabled else "disabled"
+        if hasattr(self, "step_mode_check"):
+            self.step_mode_check.configure(state=step_check_state)
+
+        step_control_state = "normal" if arduino_enabled and self.step_mode_var.get() else "disabled"
+        for widget in getattr(self, "step_schedule_controls", []):
+            widget.configure(state=step_control_state)
 
     def ensure_graph_window(self):
         if self.graph_window is None or not self.graph_window.winfo_exists():
@@ -864,7 +894,7 @@ class ThermalLoggerApp(tk.Tk):
                     step_c = float(self.step_size_var.get().strip())
                     hold_hours = float(self.step_hold_hours_var.get().strip())
 
-                    if not (3.0 <= hold_hours <= 6.0):
+                    if hold_hours <= 0:
                         raise ValueError
 
                     self.step_setpoints = self.build_step_setpoints(start_c, stop_c, step_c)
@@ -875,7 +905,7 @@ class ThermalLoggerApp(tk.Tk):
                 except Exception:
                     messagebox.showerror(
                         "Step schedule error",
-                        "Use valid numbers. Hold time must be between 3 and 6 hours."
+                        "Use valid numbers. Hold time must be a positive number of hours."
                     )
                     return
             else:
