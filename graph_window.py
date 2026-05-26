@@ -21,8 +21,9 @@ from logger_core import MAX_GRAPH_POINTS
 
 COLOR_HIGHLIGHT = "#2aa84a"
 COLOR_TEXT = "#ffffff"
-COLOR_MAIN_BG = "#000000"
+COLOR_MAIN_BG = "#b8b8b8"
 COLOR_PANEL_BG = "#d9d9d9"
+COLOR_PANEL_TEXT = "#000000"
 
 
 class LiveGraphWindow(tk.Toplevel):
@@ -72,12 +73,12 @@ class LiveGraphWindow(tk.Toplevel):
         self.configure(bg=COLOR_MAIN_BG)
         style = ttk.Style(self)
         style.configure("Graph.TFrame", background=COLOR_MAIN_BG)
-        style.configure("Graph.TLabel", background=COLOR_MAIN_BG, foreground=COLOR_TEXT)
-        style.configure("Graph.TCheckbutton", background=COLOR_MAIN_BG, foreground=COLOR_TEXT)
+        style.configure("Graph.TLabel", background=COLOR_MAIN_BG, foreground=COLOR_PANEL_TEXT)
+        style.configure("Graph.TCheckbutton", background=COLOR_MAIN_BG, foreground=COLOR_PANEL_TEXT)
         style.map(
             "Graph.TCheckbutton",
             background=[("active", COLOR_MAIN_BG), ("selected", COLOR_MAIN_BG)],
-            foreground=[("active", COLOR_TEXT), ("selected", COLOR_TEXT)],
+            foreground=[("active", COLOR_PANEL_TEXT), ("selected", COLOR_PANEL_TEXT)],
         )
         style.configure("Graph.TButton", background=COLOR_HIGHLIGHT, foreground=COLOR_TEXT, padding=(10, 5))
         style.map(

@@ -110,8 +110,8 @@ ICON_FILENAME = "lux_logo.ico"
 COLOR_HIGHLIGHT = "#2aa84a"
 COLOR_TEXT = "#ffffff"
 COLOR_PANEL_TEXT = "#000000"
-COLOR_MAIN_BG = "#000000"
-COLOR_SECONDARY_BG = "#d9d9d9"
+COLOR_MAIN_BG = "#b8b8b8"
+COLOR_SECONDARY_BG = "#b8b8b8"
 COLOR_FIELD_BG = "#ffffff"
 COLOR_TAB_BG = "#777777"
 COLOR_ERROR = "#ff6b6b"
@@ -391,10 +391,10 @@ class ThermalLoggerApp(tk.Tk):
         style.configure("TFrame", background=COLOR_MAIN_BG)
         style.configure("Secondary.TFrame", background=COLOR_SECONDARY_BG)
         style.configure("TLabel", background=COLOR_SECONDARY_BG, foreground=COLOR_PANEL_TEXT)
-        style.configure("Main.TLabel", background=COLOR_MAIN_BG, foreground=COLOR_TEXT)
+        style.configure("Main.TLabel", background=COLOR_MAIN_BG, foreground=COLOR_PANEL_TEXT)
         style.configure("Secondary.TLabel", background=COLOR_SECONDARY_BG, foreground=COLOR_PANEL_TEXT)
-        style.configure("Header.TLabel", background=COLOR_MAIN_BG, foreground=COLOR_TEXT, font=header_font)
-        style.configure("Subheader.TLabel", background=COLOR_MAIN_BG, foreground=COLOR_HIGHLIGHT, font=subheader_font)
+        style.configure("Header.TLabel", background=COLOR_MAIN_BG, foreground=COLOR_PANEL_TEXT, font=header_font)
+        style.configure("Subheader.TLabel", background=COLOR_MAIN_BG, foreground=COLOR_PANEL_TEXT, font=subheader_font)
         style.configure("PanelHeader.TLabel", background=COLOR_SECONDARY_BG, foreground=COLOR_PANEL_TEXT, font=subheader_font)
         style.configure("Muted.TLabel", background=COLOR_SECONDARY_BG, foreground=COLOR_PANEL_TEXT)
         style.configure(
