@@ -197,7 +197,7 @@ def apply_column_colors(ws):
     header_row_idx = None
     for row in ws.iter_rows(min_row=1, max_row=ws.max_row):
         for cell in row:
-            if cell.value == "timestamp":
+            if cell.value == "Data_Sample":
                 header_row_idx = cell.row
                 break
         if header_row_idx is not None:
@@ -280,6 +280,7 @@ class ThermalLoggerApp(tk.Tk):
 
         self.is_logging = False
         self.start_time = None
+        self.sample_count = 0
         self.duration_seconds = None
         self.data_filename = None
         self.active_channels: List[Tuple[int, str]] = []
@@ -863,7 +864,9 @@ class ThermalLoggerApp(tk.Tk):
         self.csv_writer.writerow([meta_text])
         self.csv_writer.writerow([])
 
-        header = ["timestamp"]
+        self.sample_count = 0
+
+        header = ["Data_Sample"]
 
         if self.use_arduino_flag:
             header.extend(["Ambient_Feedback_C", "Ambient_Setpoint_C", "Arduino_PWM"])
@@ -936,7 +939,8 @@ class ThermalLoggerApp(tk.Tk):
             self.set_status("Logging...")
 
         ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        row = [ts]
+        self.sample_count += 1
+        row = [self.sample_count]
         display_vals: List[str] = []
 
         if self.start_time is not None:
