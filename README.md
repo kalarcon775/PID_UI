@@ -3,7 +3,7 @@
 **GUI Thermal Logger for LUX Dynamics**
 
 ## 📄 Overview  
-PID_UI is a desktop application (Tkinter-based) that automates thermal testing using a Pico TC-08 data logger — with optional ambient-temperature control and logging via an Arduino. It logs channel data with timestamps, saves to CSV, and automatically generates a color-coded Excel (.xlsx) file for easy review and post-processing. It supports custom metadata, user-defined channel names, optional timed runs, and ambient setpoint control.
+PID_UI is a desktop application (Tkinter-based) that automates thermal testing using a Pico TC-08 data logger — with optional ambient-temperature control and logging via an Arduino. It logs channel data by sample number, saves to CSV, and automatically generates a color-coded Excel (.xlsx) file for easy review and post-processing. It supports custom metadata, user-defined channel names, optional timed runs, and ambient setpoint control.
 
 ## 💡 Why this exists  
 - Simplifies repetitive thermal test logging.  
@@ -15,7 +15,7 @@ PID_UI is a desktop application (Tkinter-based) that automates thermal testing u
 - User-friendly GUI for configuring tests (test name, tester, fixture, notes, channels).  
 - Supports 0–8 TC-08 inputs + optional cold-junction sensor.  
 - Optional Arduino ambient control: set a target temperature, log ambient temperature + PWM.  
-- CSV logging with timestamp + channel readings (and ambient if enabled).  
+- CSV logging with sample number + channel readings (and ambient if enabled).
 - Automatic export to color-coded Excel for better readability.  
 - Optional duration (run for N minutes) or unlimited logging.  
 - Configurable channel names and metadata fields for traceability.  
@@ -31,7 +31,7 @@ Then configure your test in the GUI and click Start Logging. The program will sa
 
 ## 📁 Output
 
-CSV file with timestamp + all logged channels (and ambient if enabled)
+CSV file with sample number + all logged channels (and ambient if enabled)
 
 Excel file (.xlsx) with the same data, but with colored columns and grid borders for easier readability
 
